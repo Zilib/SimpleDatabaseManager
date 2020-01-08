@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+DBManager/Release/*
+DBManager/*.lib
+DBManager/.vs/*
+DBManager/Debug/*
+DBManager/x64/*
