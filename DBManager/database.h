@@ -23,8 +23,10 @@ private:
 
 	// Database initialize functions
 	bool DatabaseConnect();
-	void SelectDatabase();
+	void SelectDatabase() const;
 	bool DoesDatabaseExist() const;
-	void CreateDatabase();
-	
+	bool CreateDatabase() const;
+
+	// Interact with user
+	void SelectPoll();
 };

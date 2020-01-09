@@ -24,7 +24,7 @@ bool Database::DatabaseConnect()
 	}
 }
 
-void Database::SelectDatabase() 
+bool Database::SelectDatabase() const
 {
 	if (!DoesDatabaseExist())
 	{
@@ -48,7 +48,11 @@ void Database::SelectDatabase()
 		}
 		else if (Choose == '1')
 		{
-			CreateDatabase();
+			if(CreateDatabase())
+			{
+				std::cout << "Database has been created, now you can work with it!\n";
+				return true; // Now database is selected! You can work! We don't want to work async
+			}
 		}
 	}
 }
@@ -61,7 +65,6 @@ bool Database::DoesDatabaseExist() const
 	// Filling array with database names
 	while (Result->next())
 	{
-		std::cout << Result->getString(1)<<std::endl;
 		if (Result->getString(1) == DBName)
 		{
 			return true;
@@ -70,21 +73,36 @@ bool Database::DoesDatabaseExist() const
 	return false;
 }
 
-void Database::CreateDatabase()
+bool Database::CreateDatabase() const
 {
 	sql::Statement* Stmt = Con->createStatement();
 	// Create and use database
 	std::string Query = "CREATE DATABASE " + DBName;
 	Stmt->execute(Query);
-	Stmt->execute("USE "+ DBName);
+	Con->setSchema(DBName);
 
 	// Create tables
+	// Main data here
 	Stmt->execute("CREATE TABLE Poll (Id int AUTO_INCREMENT PRIMARY KEY, Title varchar(100), Description varchar(255), PublishDate timestamp, Deadline timestamp);");
-	Stmt->execute("CREATE TABLE OpenQuestions (id int AUTO_INCREMENT PRIMARY KEY, PollId int, Type int, RowOrder int unsigned, Content varchar(130));");
-	Stmt->execute("CREATE TABLE Types (Id int AUTO_INCREMENT PRIMARY KEY, TypeName varchar(100))");
-	Stmt->execute("CREATE TABLE CloseAnswers (Id int AUTO_INCREMENT PRIMARY KEY, RowOrder int unsigned, QuestionId int, Content varchar(300))");
+	Stmt->execute("CREATE TABLE Questions (Id int AUTO_INCREMENT PRIMARY KEY, PollId int, Type int, RowOrder int unsigned, QuestionText varchar(130));");
+	Stmt->execute("CREATE TABLE QuestionTypes (Id int AUTO_INCREMENT PRIMARY KEY, TypeName varchar(100))");
+	Stmt->execute("CREATE TABLE AvailableCloseAnswers (Id int AUTO_INCREMENT PRIMARY KEY, RowOrder int unsigned, QuestionId int, AnswerText varchar(300))");
+	Stmt->execute("CREATE TABLE CloseAnswersReplies (Id int AUTO_INCREMENT PRIMARY KEY, PollId int, QuestionId int, AnswerId int)");
 	Stmt->execute("CREATE TABLE CustomerAnswers (Id int AUTO_INCREMENT PRIMARY KEY, PollId int, QuestionId int, Answer varchar(255), AnswerTime timestamp)");
-	
+
+	// Add foreign keys
+	Stmt->execute("ALTER TABLE Questions ADD FOREIGN KEY (PollId) REFERENCES Poll(Id)");
+	Stmt->execute("ALTER TABLE Questions ADD FOREIGN KEY (Type) REFERENCES QuestionTypes(Id)");
+	Stmt->execute("ALTER TABLE CustomerAnswers ADD FOREIGN KEY (QuestionId) REFERENCES Questions(Id)");
+	Stmt->execute("ALTER TABLE CustomerAnswers ADD FOREIGN KEY (PollId) REFERENCES Poll(Id)");
+	Stmt->execute("ALTER TABLE AvailableCloseAnswers ADD FOREIGN KEY (QuestionId) REFERENCES Questions(Id)");
+	Stmt->execute("ALTER TABLE CloseAnswersReplies ADD FOREIGN KEY (AnswerId) REFERENCES AvailableCloseAnswers(Id)");
+	Stmt->execute("ALTER TABLE CloseAnswersReplies ADD FOREIGN KEY (QuestionId) REFERENCES Questions(Id)");
+	Stmt->execute("ALTER TABLE CloseAnswersReplies ADD FOREIGN KEY (PollId) REFERENCES Poll(Id)");
+
+	delete Stmt;
+
+	return true; // When every query execute return true, to work synchronic.
 }
 
 
