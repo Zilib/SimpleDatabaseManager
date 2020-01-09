@@ -7,8 +7,6 @@
 
 class Database
 {
-public:
-	Database();
 private:
 	// Database config variables
 	const std::string Host{ "127.0.0.1:3306" };
@@ -23,10 +21,13 @@ private:
 
 	// Database initialize functions
 	bool DatabaseConnect();
-	void SelectDatabase() const;
+	bool SelectDatabase() const;
 	bool DoesDatabaseExist() const;
 	bool CreateDatabase() const;
 
+public:
+	bool ConstructObject();
 	// Interact with user
 	void SelectPoll();
+	void CreatePoll();
 };
