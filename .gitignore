@@ -36,3 +36,5 @@ DBManager/*.lib
 DBManager/.vs/*
 DBManager/Debug/*
 DBManager/x64/*
+*.tlog
+*.pdb
