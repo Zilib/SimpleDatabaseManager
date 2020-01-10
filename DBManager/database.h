@@ -14,6 +14,7 @@ private:
 	const std::string DBPassword{ "OcJYGs9zAYvw70180lZn" };
 
 	std::vector<std::string>BasesName; // Show databases result
+	std::vector<std::string>QuestionTypes;
 	std::string DBName{ "pollapp" };
 	// Library variables
 	sql::Driver* Driver;
@@ -24,10 +25,11 @@ private:
 	bool SelectDatabase() const;
 	bool DoesDatabaseExist() const;
 	bool CreateDatabase() const;
-
+	bool GetQuestionTypes();
 public:
 	bool ConstructObject();
 	// Interact with user
 	void SelectPoll();
 	void CreatePoll();
+	void CreateQuestion(unsigned short int RowOrder);
 };
