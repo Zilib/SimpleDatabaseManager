@@ -19,6 +19,7 @@ private:
 	sql::Connection* Con;
 
 	unsigned short int MaxNumberOfQuestions{ 64 };
+	unsigned short int MaxNumberOfAnswers{ 64 };
 	const unsigned short int* pCurrentQuestionRow{ nullptr }; 
 	const unsigned short int* pCurrentAnswerRow{ nullptr }; 
 	
@@ -32,8 +33,13 @@ public:
 	// Interact with user
 	void SelectPoll();
 	void CreatePoll();
+	// Save to variables
 	void CreateQuestion(const unsigned short int RowOrder);
-	void CreateQuestionOpen();
+	void CreateQuestionOpen() const;
 	void CreateQuestionClose();
-	void QuestionAvailableAnswers();
+	void CreateQuestionAnswers(const unsigned short int AnswerRow);
+	// Insert into database
+	void InsertQuestion(std::string& QuestionText,unsigned short int Type) const; // Type 1 = Open Question, 2 = Close Question.Quest order is saved in the pointer, and poll id is saved in the database variable
+	void InsertAnswer(std::string& AnswerContent) const;
 };
+
