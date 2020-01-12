@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <jdbc/cppconn/driver.h>
 #include <jdbc/cppconn/exception.h>
 #include <vector>
@@ -20,6 +19,8 @@ private:
 	sql::Driver* Driver;
 	sql::Connection* Con;
 
+	unsigned short int MaxNumberOfQuestions{ 64 };
+	
 	// Database initialize functions
 	bool DatabaseConnect();
 	bool SelectDatabase() const;

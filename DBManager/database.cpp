@@ -1,4 +1,6 @@
 #include "database.h"
+#include <iostream>
+#include <string>
 #include <jdbc/cppconn/statement.h>
 #include <jdbc/cppconn/prepared_statement.h>
 
@@ -110,8 +112,8 @@ bool Database::CreateDatabase() const
 	delete Stmt;
 	
 	sql::PreparedStatement* PreparedStatement = Con->prepareStatement("INSERT INTO QuestionTypes (TypeName) VALUES (?), (?)");
-	PreparedStatement->setString(1, "OpenQuestion");
-	PreparedStatement->setString(2, "CloseQuestion");
+	PreparedStatement->setString(1, "Open Question");
+	PreparedStatement->setString(2, "Close Question");
 	PreparedStatement->executeUpdate();
 
 	delete PreparedStatement;
@@ -190,10 +192,12 @@ void Database::CreatePoll()
 	std::string Title, Description;
 
 	std::cout << "Input poll name: ";
-	std::cin>>Title; // TODO get full line
+	std::cin.ignore();
+	std::getline(std::cin,Title);
 
 	std::cout << "Input poll description: ";
-	std::cin>>Description; // TODO get full line
+	std::cin.ignore();
+	std::getline(std::cin,Description);
 
 	sql::PreparedStatement* PreparedStmt = Con->prepareStatement("INSERT INTO Polls (Title,Description) VALUES (?, ?)");
 	PreparedStmt->setString(1, Title);
@@ -206,17 +210,18 @@ void Database::CreatePoll()
 	delete Stmt;
 
 	unsigned short int QuestionsNumber;
-	
+
 	std::cout << "How many questions would you like to have? ";
 	std::cin >> QuestionsNumber;
-	while (std::cin.fail()) // TODO FIX input protect
+	while (QuestionsNumber > MaxNumberOfQuestions || QuestionsNumber <= 0 || std::cin.fail()) // TODO FIX input protect
 	{
-		system("cls");
 		std::cout << "Wrong number please input number again!\n";
 		std::cout << "How many questions would you like to have? ";
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		std::cin >> QuestionsNumber;
 	}
-	
+	std::cout << "ELOELO";
 	for (int i = 1; i <= QuestionsNumber;)
 	{
 		CreateQuestion(i++);
@@ -252,7 +257,9 @@ void Database::CreateQuestion(unsigned short int RowOrder)
 	}
 	std::cout << "Okey good choice...\n";
 	std::cout << "Please insert question content \n";
-	std::cin >> QuestionContent; // TODO get full line
+	
+	std::cin.ignore();
+	std::getline(std::cin, QuestionContent);
 	
 	sql::PreparedStatement* PreparedStmt = Con->prepareStatement("INSERT INTO questions (QuestionText,Type,RowOrder, PollId) VALUES (?,?,?, @LastPollId)");
 	PreparedStmt->setString(1, QuestionContent);
