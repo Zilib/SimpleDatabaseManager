@@ -4,6 +4,12 @@
 #include <jdbc/cppconn/exception.h>
 #include <vector>
 
+struct Poll
+{
+	unsigned short int id;
+	std::string Title;
+};
+
 class Database
 {
 private:
@@ -14,6 +20,7 @@ private:
 
 	std::vector<std::string>BasesName; // Show databases result
 	std::string DBName{ "pollapp" };
+	std::vector<Poll> Polls;
 	// Library variables
 	sql::Driver* Driver;
 	sql::Connection* Con;
@@ -31,14 +38,19 @@ private:
 public:
 	bool ConstructObject();
 	// Interact with user
-	void SelectPoll();
+	void PollAnswer();
 	void CreatePoll();
 	// Save to variables
 	void CreateQuestion(const unsigned short int RowOrder);
 	void CreateQuestionOpen() const;
 	void CreateQuestionClose();
 	void CreateQuestionAnswers(const unsigned short int AnswerRow);
+	// Operations with vectors
+	void ShowPolls();
+	void SelectPoll();
 	// Insert into database
+	// Load data from database
+	bool LoadPolls();
 	void InsertQuestion(std::string& QuestionText,unsigned short int Type) const; // Type 1 = Open Question, 2 = Close Question.Quest order is saved in the pointer, and poll id is saved in the database variable
 	void InsertAnswer(std::string& AnswerContent) const;
 };

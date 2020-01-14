@@ -109,54 +109,12 @@ bool Database::CreateDatabase() const
 	return true; // When every query execute return true, to work synchronic.
 }
 // Functions which interact with user / DML functions
-void Database::SelectPoll()
+void Database::PollAnswer()
 {
-	sql::Statement* Stmt = Con->createStatement();
-	sql::ResultSet* Results = Stmt->executeQuery("SELECT count(id) FROM polls");
-
-	bool DoesAnyPollExists{ false };
-	while (Results->next())
+	if(LoadPolls())
 	{
-		DoesAnyPollExists = Results->getInt(1) != 0;
-	}
-
-	if (DoesAnyPollExists)
-	{
-		Results = Stmt->executeQuery("SELECT Title from polls");
-		std::vector<std::string>PollNames;
-
-		// Let user choose
-		unsigned short int Iterator;
-		std::cout << "Choose poll\n";
-		while (Results->next())
-		{
-			PollNames.push_back(Results->getString(1));
-			std::cout << PollNames.size() << ". " << Results->getString(1)<<std::endl;
-		}
-	}
-	else 
-	{
-		// So let's make an poll only if user want it
-		std::cout << "Firstly, you have to create poll, i cannot show you anything\n";
-		std::cout << "Would you like to create one poll right now?\n 1.Yes\t2.No\n";
-		char Choose;
-		while (std::cin >> Choose
-			&& (Choose != '1'
-			&& Choose != '2'))
-		{
-			system("cls");
-			std::cout << "Incorrect number, please input number again\n";
-			std::cout << "Would you like to create one poll right now?\n 1.Yes\t2.No\n";
-		}
-		if (Choose == '1')
-		{
-			CreatePoll();
-		}
-		else if (Choose == '2')
-		{
-			std::cout << std::endl << "So i must say goodbye";
-			exit(0);
-		}
+		ShowPolls();
+		SelectPoll();
 	}
 }
 // So here is something for tomorrow! And weekend
@@ -304,3 +262,82 @@ void Database::CreateQuestionAnswers(const unsigned short int AnswerRow)
 	InsertAnswer(AnswerContent);
 }
 
+bool Database::LoadPolls()
+{
+	sql::Statement* Stmt = Con->createStatement();
+	sql::ResultSet* Results = Stmt->executeQuery("SELECT count(id) FROM polls");
+	
+	bool DoesAnyPollExists{ false };
+	while (Results->next())
+	{
+		DoesAnyPollExists = Results->getInt(1) != 0; // If exists at least 1 poll return true
+	}
+
+	if (DoesAnyPollExists)
+	{
+		Results = Stmt->executeQuery("SELECT Id,Title from polls");
+
+		// Let user choose
+		unsigned short int Iterator;
+		std::cout << "Choose poll\n";
+		Poll *TemporaryPool = new Poll; // Temporary data
+		while (Results->next())
+		{
+			TemporaryPool->id = Results->getUInt(1);
+			TemporaryPool->Title = Results->getString(2);
+			Polls.push_back(*TemporaryPool); // Save every uploaded data into a local variable
+		}
+		delete TemporaryPool;
+		return true;
+	}
+	else
+	{
+		// So let's make an poll only if user want it
+		std::cout << "Firstly, you have to create poll, i cannot show you anything\n";
+		std::cout << "Would you like to create one poll right now?\n 1.Yes\t2.No\n";
+		char Choose;
+		while (std::cin >> Choose
+			&& (Choose != '1'
+				&& Choose != '2'))
+		{
+			system("cls");
+			std::cout << "Incorrect number, please input number again\n";
+			std::cout << "Would you like to create one poll right now?\n 1.Yes\t2.No\n";
+		}
+		if (Choose == '1')
+		{
+			CreatePoll();
+		}
+		else if (Choose == '2')
+		{
+			std::cout << std::endl << "So i must say goodbye";
+			exit(0);
+		}
+		return false;
+	}
+}
+
+void Database::ShowPolls()
+{
+	int ArrayIndex = 0;
+	for(auto& Poll : Polls)
+	{
+		if (ArrayIndex + 1 % 5 != 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << "\t"; }
+		else if (ArrayIndex + 1 % 5 == 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << std::endl; }
+	}
+}
+
+void Database::SelectPoll()
+{
+	std::cout << std::endl;
+	std::cout << "Make your choice, which poll you want to answer for\n";
+
+	short int Choose;
+	while(std::cin>>Choose && (Choose > Polls.size() - 1 || Choose < 0 )) // TODO check does user input an character
+	{
+		std::cout << "Bad number\nPlease input number again!: ";
+		std::cin.clear();
+		std::cin.ignore();
+	}
+	std::cout << "\nOk, your choice is: " << Polls[Choose].Title;
+}
