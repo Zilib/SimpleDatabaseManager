@@ -262,6 +262,12 @@ void Database::CreateQuestionAnswers(const unsigned short int AnswerRow)
 	InsertAnswer(AnswerContent);
 }
 
+// Load specific pool
+bool Database::LoadPoll()
+{
+	
+}
+// Load every id and titles of every polls
 bool Database::LoadPolls()
 {
 	sql::Statement* Stmt = Con->createStatement();

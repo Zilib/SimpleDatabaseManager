@@ -4,6 +4,7 @@
 #include <jdbc/cppconn/exception.h>
 #include <vector>
 
+
 struct Poll
 {
 	unsigned short int id;
@@ -24,7 +25,8 @@ private:
 	// Library variables
 	sql::Driver* Driver;
 	sql::Connection* Con;
-
+	
+	
 	unsigned short int MaxNumberOfQuestions{ 64 };
 	unsigned short int MaxNumberOfAnswers{ 64 };
 	const unsigned short int* pCurrentQuestionRow{ nullptr }; 
@@ -48,9 +50,10 @@ public:
 	// Operations with vectors
 	void ShowPolls();
 	void SelectPoll();
-	// Insert into database
 	// Load data from database
+	bool LoadPoll();
 	bool LoadPolls();
+	// Insert into database
 	void InsertQuestion(std::string& QuestionText,unsigned short int Type) const; // Type 1 = Open Question, 2 = Close Question.Quest order is saved in the pointer, and poll id is saved in the database variable
 	void InsertAnswer(std::string& AnswerContent) const;
 };

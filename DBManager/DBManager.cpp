@@ -15,11 +15,13 @@ int main()
 		{
 			system("CLS");
 			std::cout << "Incorrect input, press your number again!\n";
+			std::cout << "What would you like to do? Give an answer for pool or create another one?\n";
+			std::cout << "1. Give an answer for existing pool\t\t 2.Create another one\n";
 		}
 		system("CLS");
 		if (Choose == '1')
 		{
-			MyDB->SelectPoll();
+			MyDB->PollAnswer();
 		}
 		else if (Choose == '2')
 		{
