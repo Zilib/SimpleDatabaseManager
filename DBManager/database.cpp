@@ -1,8 +1,12 @@
 #include "database.h"
 #include <iostream>
 #include <string>
+#include <Windows.h>
+#include <memory>
 #include <jdbc/cppconn/statement.h>
 #include <jdbc/cppconn/prepared_statement.h>
+
+#undef max // Remove collision Windows.h with std::cin.ignore limits
 
 // To allow work sync, construct is an bool function
 bool Database::ConstructObject()
@@ -12,6 +16,23 @@ bool Database::ConstructObject()
 		if (SelectDatabase()) { return true; }
 	}
 	return false;
+}
+
+void Database::WaitingText()
+{
+	system("cls");
+	std::cout << "Wait";
+	for (int i{ 0 }; i < 4; i++)
+	{
+		std::cout << ".";
+		Sleep(1000);
+		if (i == 3)
+		{
+			system("cls");
+			std::cout << "Wait";
+			i = 0;
+		}
+	}
 }
 
 bool Database::DatabaseConnect()
@@ -263,10 +284,29 @@ void Database::CreateQuestionAnswers(const unsigned short int AnswerRow)
 }
 
 // Load specific pool
-bool Database::LoadPoll()
+bool Database::LoadPollQuestions()
 {
+	sql::PreparedStatement* PreparedStmt = Con->prepareStatement("SELECT QuestionText,RowOrder,Type,Id FROM questions WHERE PollId =  ?");
+	PreparedStmt->setUInt(1,pSelectedPoll->id);
+	sql::ResultSet* Results = PreparedStmt->executeQuery();
+
+	while(Results->next())
+	{
+		if(Results->getUInt(3) == 1) // If it is a open question 
+		{
+			OpenQuestion TemporaryQuestion(Results->getUInt(4), Results->getUInt(2), Results->getString(1),QuestionType::Close);
+			pSelectedPoll->Questions.push_back(TemporaryQuestion);
+		}
+		else if(Results->getUInt(3) == 2) // Close question
+		{
+			CloseQuestion TemporaryQuestion(Results->getUInt(4), Results->getUInt(2), Results->getString(1),QuestionType::Close);
+			pSelectedPoll->Questions.push_back(TemporaryQuestion);
+		}
+	}
 	
+	return true;
 }
+
 // Load every id and titles of every polls
 bool Database::LoadPolls()
 {
@@ -281,19 +321,19 @@ bool Database::LoadPolls()
 
 	if (DoesAnyPollExists)
 	{
-		Results = Stmt->executeQuery("SELECT Id,Title from polls");
+		Results = Stmt->executeQuery("SELECT Id,Title, Description from polls");
 
 		// Let user choose
-		unsigned short int Iterator;
 		std::cout << "Choose poll\n";
-		Poll *TemporaryPool = new Poll; // Temporary data
+		Poll *TemporaryPoll = new Poll; // Temporary data
 		while (Results->next())
 		{
-			TemporaryPool->id = Results->getUInt(1);
-			TemporaryPool->Title = Results->getString(2);
-			Polls.push_back(*TemporaryPool); // Save every uploaded data into a local variable
+			TemporaryPoll->id = Results->getUInt(1);
+			TemporaryPoll->Title = Results->getString(2);
+			TemporaryPoll->Description = Results->getString(3);
+			Polls.push_back(*TemporaryPoll); // Save every uploaded data into a local variable
 		}
-		delete TemporaryPool;
+		delete TemporaryPoll;
 		return true;
 	}
 	else
@@ -345,5 +385,12 @@ void Database::SelectPoll()
 		std::cin.clear();
 		std::cin.ignore();
 	}
+	pSelectedPoll = &Polls[Choose]; 
 	std::cout << "\nOk, your choice is: " << Polls[Choose].Title;
+
+	unsigned short int DotNumber{ 0 };
+	while(!LoadPollQuestions())
+	{
+	//	WaitingText();
+	}
 }

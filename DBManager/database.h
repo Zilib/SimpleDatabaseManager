@@ -3,12 +3,18 @@
 #include <jdbc/cppconn/driver.h>
 #include <jdbc/cppconn/exception.h>
 #include <vector>
-
+#include "Question.h"
+#include <memory>
 
 struct Poll
 {
+	// Cannot be undefined
 	unsigned short int id;
 	std::string Title;
+	std::string Description;
+	
+	// Can be undefined
+	std::vector<Question> Questions;
 };
 
 class Database
@@ -26,17 +32,20 @@ private:
 	sql::Driver* Driver;
 	sql::Connection* Con;
 	
-	
 	unsigned short int MaxNumberOfQuestions{ 64 };
 	unsigned short int MaxNumberOfAnswers{ 64 };
 	const unsigned short int* pCurrentQuestionRow{ nullptr }; 
-	const unsigned short int* pCurrentAnswerRow{ nullptr }; 
+	const unsigned short int* pCurrentAnswerRow{ nullptr };
+
+	static void WaitingText(); // Call this function while you are waiting
 	
 	// Database initialize functions
 	bool DatabaseConnect();
 	bool SelectDatabase() const;
 	bool DoesDatabaseExist() const;
 	bool CreateDatabase() const;
+
+	Poll *pSelectedPoll{ nullptr };
 public:
 	bool ConstructObject();
 	// Interact with user
@@ -51,7 +60,8 @@ public:
 	void ShowPolls();
 	void SelectPoll();
 	// Load data from database
-	bool LoadPoll();
+	bool LoadPollQuestions();
+	bool LoadFullDataPoll();
 	bool LoadPolls();
 	// Insert into database
 	void InsertQuestion(std::string& QuestionText,unsigned short int Type) const; // Type 1 = Open Question, 2 = Close Question.Quest order is saved in the pointer, and poll id is saved in the database variable
