@@ -1,29 +1,73 @@
 ﻿#include  "database.h"
+#include "Menu.h"
+
+void ShowHeader(Poll* pPoll)
+{
+	// static header, which will always showed
+	std::cout << pPoll->Title << std::endl;
+	std::cout << pPoll->Description << std::endl;
+}
+
+void ShowPolls(Database* PollDB)
+{
+	int ArrayIndex{ 0 };
+	for(auto& Poll: PollDB->GetPolls())
+	{
+		if (ArrayIndex + 1 % 5 != 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << "\t"; }
+		else if (ArrayIndex + 1 % 5 == 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << std::endl; }
+	}
+}
+
+void SelectPoll(Database* PollDB,Poll& Poll)
+{
+	std::cout << std::endl << std::endl;
+	std::cout << "Make your choice, which poll you want to answer for\n";
+
+	short int Choose;
+	while (std::cin >> Choose && (Choose > PollDB->GetPolls().size() - 1 || Choose < 0)) // TODO check does user input an character
+	{
+		std::cout << "Bad number\nPlease input number again!: ";
+		std::cin.clear();
+		std::cin.ignore();
+	}
+	Poll = PollDB->GetPolls()[Choose];
+	PollDB->DestroyPolls(); 
+}
+
+void ShowQuestion(Question* pQuestion)
+{
+	pQuestion->ShowContent();
+	pQuestion->AnswerForQuestion();
+}
 
 int main()
 {
 	Database* MyDB = new Database;
-
+	Menu* pMenu = new Menu;
+	Poll Poll;
 	if(MyDB->ConstructObject())
 	{
-		// Now database is selected, everything is fine so we can work!
-		std::cout << "What would you like to do? Give an answer for pool or create another one?\n";
-		std::cout << "1. Give an answer for existing pool\t\t 2.Create another one\n";
+		/// Now database is selected, everything is fine so we can work!
+		char InputChoice = pMenu->ChooseChar();
 		
-		char Choose;
-		while(std::cin>>Choose && !(Choose == '1' || Choose == '2'))
+		while(InputChoice != '1' && InputChoice != '2')
 		{
-			system("CLS");
-			std::cout << "Incorrect input, press your number again!\n";
-			std::cout << "What would you like to do? Give an answer for pool or create another one?\n";
-			std::cout << "1. Give an answer for existing pool\t\t 2.Create another one\n";
+			InputChoice = pMenu->ChooseChar();
 		}
-		system("CLS");
-		if (Choose == '1')
-		{
-			MyDB->PollAnswer();
+		system("cls");
+		if(InputChoice == '1')
+		{	
+			ShowPolls(MyDB);
+			SelectPoll(MyDB,Poll);
+			if(MyDB->LoadPollQuestions(Poll.id, Poll.Questions))
+			{
+				for(int i{ 0 };i<Poll.Questions.size();i++)
+				{
+					ShowQuestion(Poll.Questions[i]);
+				}
+			}
 		}
-		else if (Choose == '2')
+		else if (InputChoice == '2')
 		{
 			MyDB->CreatePoll();
 		}

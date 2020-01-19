@@ -13,7 +13,10 @@ bool Database::ConstructObject()
 {
 	if(DatabaseConnect())
 	{
-		if (SelectDatabase()) { return true; }
+		if (SelectDatabase()) 
+		{
+			if (LoadPolls()) { return true; }
+		}
 	}
 	return false;
 }
@@ -128,15 +131,6 @@ bool Database::CreateDatabase() const
 	delete Stmt;
 	
 	return true; // When every query execute return true, to work synchronic.
-}
-// Functions which interact with user / DML functions
-void Database::PollAnswer()
-{
-	if(LoadPolls())
-	{
-		ShowPolls();
-		SelectPoll();
-	}
 }
 // So here is something for tomorrow! And weekend
 void Database::CreatePoll()
@@ -284,23 +278,24 @@ void Database::CreateQuestionAnswers(const unsigned short int AnswerRow)
 }
 
 // Load specific pool
-bool Database::LoadPollQuestions()
+bool Database::LoadPollQuestions(unsigned short int PollId,std::vector<Question*>& Questions) const
 {
-	sql::PreparedStatement* PreparedStmt = Con->prepareStatement("SELECT QuestionText,RowOrder,Type,Id FROM questions WHERE PollId =  ?");
-	PreparedStmt->setUInt(1,pSelectedPoll->id);
+	sql::PreparedStatement* PreparedStmt = Con->prepareStatement("SELECT QuestionText,Type,Id FROM questions WHERE PollId =  ? ORDER BY RowOrder ASC");
+	PreparedStmt->setUInt(1,PollId);
 	sql::ResultSet* Results = PreparedStmt->executeQuery();
 
 	while(Results->next())
 	{
-		if(Results->getUInt(3) == 1) // If it is a open question 
+		if(Results->getUInt(2) == 1) // If it is a open question 
 		{
-			OpenQuestion TemporaryQuestion(Results->getUInt(4), Results->getUInt(2), Results->getString(1),QuestionType::Close);
-			pSelectedPoll->Questions.push_back(TemporaryQuestion);
+			OpenQuestion *TemporaryQuestion = new OpenQuestion(Results->getUInt(3), Results->getString(1),QuestionType::Open);
+			Questions.push_back(TemporaryQuestion);
 		}
-		else if(Results->getUInt(3) == 2) // Close question
+		else if(Results->getUInt(2) == 2) // Close question
 		{
-			CloseQuestion TemporaryQuestion(Results->getUInt(4), Results->getUInt(2), Results->getString(1),QuestionType::Close);
-			pSelectedPoll->Questions.push_back(TemporaryQuestion);
+			CloseQuestion *TemporaryQuestion = new CloseQuestion(Results->getUInt(3), Results->getString(1), QuestionType::Close);
+
+			if (TemporaryQuestion->LoadAnswers(Con, Results->getUInt(3))) { Questions.push_back(TemporaryQuestion); }
 		}
 	}
 	
@@ -336,7 +331,7 @@ bool Database::LoadPolls()
 		delete TemporaryPoll;
 		return true;
 	}
-	else
+	else if (!DoesAnyPollExists)
 	{
 		// So let's make an poll only if user want it
 		std::cout << "Firstly, you have to create poll, i cannot show you anything\n";
@@ -363,34 +358,17 @@ bool Database::LoadPolls()
 	}
 }
 
-void Database::ShowPolls()
+std::vector<Question*> Database::GetQuestions() const
 {
-	int ArrayIndex = 0;
-	for(auto& Poll : Polls)
-	{
-		if (ArrayIndex + 1 % 5 != 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << "\t"; }
-		else if (ArrayIndex + 1 % 5 == 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << std::endl; }
-	}
+	return pSelectedPoll->Questions;
 }
 
-void Database::SelectPoll()
+std::vector<Poll> Database::GetPolls() const
 {
-	std::cout << std::endl;
-	std::cout << "Make your choice, which poll you want to answer for\n";
+	return Polls;
+}
 
-	short int Choose;
-	while(std::cin>>Choose && (Choose > Polls.size() - 1 || Choose < 0 )) // TODO check does user input an character
-	{
-		std::cout << "Bad number\nPlease input number again!: ";
-		std::cin.clear();
-		std::cin.ignore();
-	}
-	pSelectedPoll = &Polls[Choose]; 
-	std::cout << "\nOk, your choice is: " << Polls[Choose].Title;
-
-	unsigned short int DotNumber{ 0 };
-	while(!LoadPollQuestions())
-	{
-	//	WaitingText();
-	}
+void Database::DestroyPolls()
+{
+	Polls.clear();
 }

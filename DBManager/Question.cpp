@@ -1,28 +1,77 @@
 #include "Question.h"
 
-Question::Question(unsigned Id, unsigned RowOrder, std::string Content, QuestionType Type)
-{
-	Question::SetVariables(Id, RowOrder, std::move(Content),Type);
-}
-
-void Question::SetVariables(unsigned Id, unsigned RowOrder, std::string Content, QuestionType Type)
+Question::Question(unsigned int Id, std::string Content, QuestionType Type)
 {
 	this->Id = Id;
-	this->RowOrder = RowOrder;
 	this->Content = std::move(Content);
 	this->QType = Type;
 }
 
-OpenQuestion::OpenQuestion(unsigned Id, unsigned RowOrder, std::string Content, QuestionType Type)
-	: Question(Id, RowOrder, std::move(Content),Type) 
+void Question::ShowContent()
 {
-	std::cout << "Implemented open";
+	system("cls");
+	std::cout << Content << std::endl;
 }
 
-CloseQuestion::CloseQuestion(unsigned Id, unsigned RowOrder, std::string Content, QuestionType Type)
-	: Question(Id, RowOrder, std::move(Content),Type)
+void OpenQuestion::AnswerForQuestion()
 {
-	std::cout << "Implemented close";
+	std::cout << "Input your answer\n";
+	std::cin.ignore();
+	std::getline(std::cin, CustomerAnswer);
+	
 }
+
+void CloseQuestion::ShowAnswers()
+{
+	int i{ 1 };
+	for(auto& Answer : Answers)
+	{
+		std::cout <<i++<<". "<< Answer.Content<<std::endl;
+	}
+}
+
+void CloseQuestion::SelectAnswer()
+{
+	unsigned short int Choose;
+	std::cout << "Make your choice!\n";
+	std::cin >> Choose;
+
+	while(Choose >= Answers.size() || Choose <= 0)
+	{
+		system("cls");
+		ShowAnswers();
+		std::cout << "Incorrect number, please input number again!\n";
+		std::cin >> Choose;
+	}
+	pSelectedAnswerId = &Answers[Choose - 1].Id;
+}
+
+// Let user give an answer for poll
+void CloseQuestion::AnswerForQuestion()
+{
+	ShowAnswers();
+	SelectAnswer();
+}
+
+
+bool CloseQuestion::LoadAnswers(sql::Connection* Con, const unsigned short int Questionid)
+{
+	sql::PreparedStatement* PreparedStmt = Con->prepareStatement("SELECT Id,AnswerText FROM available_close_answers WHERE QuestionId = ? ORDER BY RowOrder ASC");
+	PreparedStmt->setUInt(1, Questionid);
+
+	sql::ResultSet* Results = PreparedStmt->executeQuery();
+
+	Answer tAnswer;
+	while(Results->next())
+	{
+		tAnswer.Id = Results->getUInt(1);
+		tAnswer.Content = Results->getString(2);
+		Answers.push_back(tAnswer);
+	}
+
+	return true;
+}
+
+
 
 

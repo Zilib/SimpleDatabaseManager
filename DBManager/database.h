@@ -4,7 +4,6 @@
 #include <jdbc/cppconn/exception.h>
 #include <vector>
 #include "Question.h"
-#include <memory>
 
 struct Poll
 {
@@ -14,7 +13,7 @@ struct Poll
 	std::string Description;
 	
 	// Can be undefined
-	std::vector<Question> Questions;
+	std::vector<Question*> Questions;
 };
 
 class Database
@@ -44,24 +43,26 @@ private:
 	bool SelectDatabase() const;
 	bool DoesDatabaseExist() const;
 	bool CreateDatabase() const;
-
-	Poll *pSelectedPoll{ nullptr };
-public:
-	bool ConstructObject();
-	// Interact with user
-	void PollAnswer();
-	void CreatePoll();
+	
 	// Save to variables
 	void CreateQuestion(const unsigned short int RowOrder);
 	void CreateQuestionOpen() const;
 	void CreateQuestionClose();
 	void CreateQuestionAnswers(const unsigned short int AnswerRow);
-	// Operations with vectors
-	void ShowPolls();
-	void SelectPoll();
+public:
+	Poll *pSelectedPoll{ nullptr };
+
+	// Release a memory
+	void DestroyPolls();
+	
+	bool ConstructObject();
+	// Interact with user
+	void CreatePoll();
+
 	// Load data from database
-	bool LoadPollQuestions();
-	bool LoadFullDataPoll();
+	bool LoadPollQuestions(unsigned short int PollId, std::vector<Question*>& Questions) const;
+	std::vector<Question*> GetQuestions() const;
+	std::vector<Poll> GetPolls() const;
 	bool LoadPolls();
 	// Insert into database
 	void InsertQuestion(std::string& QuestionText,unsigned short int Type) const; // Type 1 = Open Question, 2 = Close Question.Quest order is saved in the pointer, and poll id is saved in the database variable
