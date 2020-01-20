@@ -34,17 +34,31 @@ void SelectPoll(Database* PollDB,Poll& Poll)
 	PollDB->DestroyPolls(); 
 }
 
-void ShowQuestion(Question* pQuestion)
+void LoadAnswersToVariables(Poll* pPoll)
 {
-	pQuestion->ShowContent();
-	pQuestion->AnswerForQuestion();
+	for (auto* Question : pPoll->Questions)
+	{
+		Question->ShowContent();
+		Question->AnswerForQuestion(); // Load data into variable
+	}
 }
 
+// Send whenever customer answer for every question.
+void SendAnswersToDatabase(Poll* pPoll,Database* DB)
+{
+	for (auto* Question : pPoll->Questions)
+	{
+		DB->InsertUserAnswer(Question, pPoll->Id);
+	}
+}
 int main()
 {
 	Database* MyDB = new Database;
 	Menu* pMenu = new Menu;
 	Poll Poll;
+
+	::Poll *pPoll{&Poll};
+	
 	if(MyDB->ConstructObject())
 	{
 		/// Now database is selected, everything is fine so we can work!
@@ -59,12 +73,10 @@ int main()
 		{	
 			ShowPolls(MyDB);
 			SelectPoll(MyDB,Poll);
-			if(MyDB->LoadPollQuestions(Poll.id, Poll.Questions))
+			if(MyDB->LoadPollQuestions(Poll.Id, Poll.Questions))
 			{
-				for(int i{ 0 };i<Poll.Questions.size();i++)
-				{
-					ShowQuestion(Poll.Questions[i]);
-				}
+				LoadAnswersToVariables(pPoll);
+				SendAnswersToDatabase(pPoll, MyDB);
 			}
 		}
 		else if (InputChoice == '2')

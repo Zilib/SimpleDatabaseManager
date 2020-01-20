@@ -22,8 +22,8 @@ public:
 	void ShowContent(); // cout question text
 	virtual void AnswerForQuestion() = 0;
 	QuestionType QType;
-protected:
 	unsigned int Id;
+protected:
 	unsigned short int RowOrder;
 	std::string Content;
 };
@@ -35,7 +35,6 @@ public:
 	OpenQuestion(unsigned int Id, std::string Content, QuestionType Type)
 		: Question(Id, std::move(Content), Type) {};
 	void AnswerForQuestion() override;
-private:
 	std::string CustomerAnswer;
 };
 
@@ -49,8 +48,9 @@ public:
 	void AnswerForQuestion() override;
 	bool LoadAnswers(sql::Connection* Con, const unsigned short int Questionid);
 	void SelectAnswer();
+	std::vector<Answer> Answers;
+	Answer* pSelectedAnswer{ nullptr };
+
 private:
 	void ShowAnswers();
-	std::vector<Answer> Answers;
-	unsigned short int* pSelectedAnswerId{ nullptr };
 };

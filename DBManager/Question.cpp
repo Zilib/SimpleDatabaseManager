@@ -18,7 +18,6 @@ void OpenQuestion::AnswerForQuestion()
 	std::cout << "Input your answer\n";
 	std::cin.ignore();
 	std::getline(std::cin, CustomerAnswer);
-	
 }
 
 void CloseQuestion::ShowAnswers()
@@ -36,14 +35,15 @@ void CloseQuestion::SelectAnswer()
 	std::cout << "Make your choice!\n";
 	std::cin >> Choose;
 
-	while(Choose >= Answers.size() || Choose <= 0)
+	while(Choose > Answers.size() || Choose <= 0)
 	{
 		system("cls");
 		ShowAnswers();
 		std::cout << "Incorrect number, please input number again!\n";
 		std::cin >> Choose;
 	}
-	pSelectedAnswerId = &Answers[Choose - 1].Id;
+	// Counting is starting from 1, so we have to -1 
+	pSelectedAnswer = &Answers[Choose - 1];
 }
 
 // Let user give an answer for poll
@@ -52,7 +52,6 @@ void CloseQuestion::AnswerForQuestion()
 	ShowAnswers();
 	SelectAnswer();
 }
-
 
 bool CloseQuestion::LoadAnswers(sql::Connection* Con, const unsigned short int Questionid)
 {

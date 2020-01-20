@@ -188,7 +188,7 @@ void Database::InsertQuestion(std::string& QuestionText, unsigned short int Type
 	delete Stmt;
 }
 
-void Database::InsertAnswer(std::string& AnswerContent) const
+void Database::InsertAvailableAnswer(std::string& AnswerContent) const
 {
 	sql::PreparedStatement* PreparedStmt = Con->prepareStatement("INSERT INTO available_close_answers (RowOrder,AnswerText,QuestionId) VALUES (?, ?, @LastQuestionId)");
 	PreparedStmt->setInt(1, *pCurrentAnswerRow);
@@ -274,7 +274,7 @@ void Database::CreateQuestionAnswers(const unsigned short int AnswerRow)
 	std::cin.ignore();
 	std::getline(std::cin, AnswerContent);
 
-	InsertAnswer(AnswerContent);
+	InsertAvailableAnswer(AnswerContent);
 }
 
 // Load specific pool
@@ -323,7 +323,7 @@ bool Database::LoadPolls()
 		Poll *TemporaryPoll = new Poll; // Temporary data
 		while (Results->next())
 		{
-			TemporaryPoll->id = Results->getUInt(1);
+			TemporaryPoll->Id = Results->getUInt(1);
 			TemporaryPoll->Title = Results->getString(2);
 			TemporaryPoll->Description = Results->getString(3);
 			Polls.push_back(*TemporaryPoll); // Save every uploaded data into a local variable
@@ -355,6 +355,38 @@ bool Database::LoadPolls()
 			exit(0);
 		}
 		return false;
+	}
+}
+
+void Database::InsertUserAnswer(Question* pQuestion, const unsigned short int PollId)
+{
+	
+	if (pQuestion->QType == QuestionType::Close)
+	{
+		auto *pCloseQuestion = dynamic_cast<CloseQuestion*>(pQuestion);
+
+		for (auto& Answer : pCloseQuestion->Answers)
+		{
+			sql::PreparedStatement* PreparedStmt = Con->prepareStatement("INSERT INTO close_answers_replies (QuestionId, AnswerId, PollId) VALUES (?,?,?)");
+			PreparedStmt->setUInt(1, pQuestion->Id);
+			PreparedStmt->setUInt(2, Answer.Id);
+			PreparedStmt->setUInt(3, PollId);
+			PreparedStmt->executeQuery();
+
+			delete PreparedStmt;
+		}
+	}
+	else if (pQuestion->QType == QuestionType::Open)
+	{
+		auto *pOpenQuestion = dynamic_cast<OpenQuestion*>(pQuestion);
+		sql::PreparedStatement* PreparedStmt = Con->prepareStatement("INSERT INTO customer_answers (PollId,QuestionId,Answer) VALUES (?,?,?)");
+		PreparedStmt->setUInt(1, PollId);
+		PreparedStmt->setUInt(2, pOpenQuestion->Id);
+		PreparedStmt->setString(3, pOpenQuestion->CustomerAnswer);
+		PreparedStmt->executeQuery();
+		
+		delete pOpenQuestion;
+		delete PreparedStmt;
 	}
 }
 

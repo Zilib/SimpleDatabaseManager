@@ -8,7 +8,7 @@
 struct Poll
 {
 	// Cannot be undefined
-	unsigned short int id;
+	unsigned short int Id;
 	std::string Title;
 	std::string Description;
 	
@@ -66,6 +66,7 @@ public:
 	bool LoadPolls();
 	// Insert into database
 	void InsertQuestion(std::string& QuestionText,unsigned short int Type) const; // Type 1 = Open Question, 2 = Close Question.Quest order is saved in the pointer, and poll id is saved in the database variable
-	void InsertAnswer(std::string& AnswerContent) const;
+	void InsertAvailableAnswer(std::string& AnswerContent) const;
+	void InsertUserAnswer(Question* pQuestion,const unsigned short int PollId);
 };
 
