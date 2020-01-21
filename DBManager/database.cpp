@@ -21,23 +21,6 @@ bool Database::ConstructObject()
 	return false;
 }
 
-void Database::WaitingText()
-{
-	system("cls");
-	std::cout << "Wait";
-	for (int i{ 0 }; i < 4; i++)
-	{
-		std::cout << ".";
-		Sleep(1000);
-		if (i == 3)
-		{
-			system("cls");
-			std::cout << "Wait";
-			i = 0;
-		}
-	}
-}
-
 bool Database::DatabaseConnect()
 {
 	try
@@ -238,12 +221,13 @@ void Database::CreateQuestionClose()
 	std::cout << "How many answers would you like to add?\n";
 	unsigned short int NumberOfAnswers;
 	std::cin >> NumberOfAnswers;
-	while (NumberOfAnswers > MaxNumberOfAnswers || NumberOfAnswers <= 0 || std::cin.fail())
+	while (NumberOfAnswers > MaxNumberOfAnswers || NumberOfAnswers <= 0)
 	{
 		std::cout << "Wrong number please input number again!\n";
 		std::cout << "How many questions would you like to have? ";
 		std::cin.clear();
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		std::cin >> NumberOfAnswers;
 	}
 
 	for(int i=1; i<=NumberOfAnswers;)
@@ -271,8 +255,9 @@ void Database::CreateQuestionAnswers(const unsigned short int AnswerRow)
 	
 	std::cout << "Answer number: " << *pCurrentAnswerRow << std::endl;
 	std::cout << "Input option: ";
+	std::cin.clear();
 	std::cin.ignore();
-	std::getline(std::cin, AnswerContent);
+	std::getline(std::cin, AnswerContent); // TODO app is removing fist letter, fix it
 
 	InsertAvailableAnswer(AnswerContent);
 }
@@ -356,11 +341,12 @@ bool Database::LoadPolls()
 		}
 		return false;
 	}
+
+	return false; // It should never come here, but if it come something would be wrong.
 }
 
-void Database::InsertUserAnswer(Question* pQuestion, const unsigned short int PollId)
+void Database::InsertUserAnswer(Question* pQuestion, const unsigned short int PollId) const
 {
-	
 	if (pQuestion->QType == QuestionType::Close)
 	{
 		auto *pCloseQuestion = dynamic_cast<CloseQuestion*>(pQuestion);
@@ -390,6 +376,13 @@ void Database::InsertUserAnswer(Question* pQuestion, const unsigned short int Po
 	}
 }
 
+void Database::DestroyPolls()
+{
+	Polls.clear();
+	BasesName.clear(); // Not necessary any more.
+}
+
+
 std::vector<Question*> Database::GetQuestions() const
 {
 	return pSelectedPoll->Questions;
@@ -400,7 +393,3 @@ std::vector<Poll> Database::GetPolls() const
 	return Polls;
 }
 
-void Database::DestroyPolls()
-{
-	Polls.clear();
-}

@@ -13,7 +13,7 @@ struct Poll
 	std::string Description;
 	
 	// Can be undefined
-	std::vector<Question*> Questions;
+	std::vector<Question*> Questions; // Polymorhpics class
 };
 
 class Database
@@ -23,9 +23,9 @@ private:
 	const std::string Host{ "127.0.0.1:3306" };
 	const std::string DBUsername{ "root" };
 	const std::string DBPassword{ "OcJYGs9zAYvw70180lZn" };
+	std::string DBName{ "pollapp" };
 
 	std::vector<std::string>BasesName; // Show databases result
-	std::string DBName{ "pollapp" };
 	std::vector<Poll> Polls;
 	// Library variables
 	sql::Driver* Driver;
@@ -35,8 +35,6 @@ private:
 	unsigned short int MaxNumberOfAnswers{ 64 };
 	const unsigned short int* pCurrentQuestionRow{ nullptr }; 
 	const unsigned short int* pCurrentAnswerRow{ nullptr };
-
-	static void WaitingText(); // Call this function while you are waiting
 	
 	// Database initialize functions
 	bool DatabaseConnect();
@@ -49,24 +47,30 @@ private:
 	void CreateQuestionOpen() const;
 	void CreateQuestionClose();
 	void CreateQuestionAnswers(const unsigned short int AnswerRow);
+
+	
 public:
+	bool ConstructObject();
+
 	Poll *pSelectedPoll{ nullptr };
 
-	// Release a memory
+	// Clear polls array for release memory
 	void DestroyPolls();
 	
-	bool ConstructObject();
 	// Interact with user
 	void CreatePoll();
 
 	// Load data from database
 	bool LoadPollQuestions(unsigned short int PollId, std::vector<Question*>& Questions) const;
-	std::vector<Question*> GetQuestions() const;
-	std::vector<Poll> GetPolls() const;
 	bool LoadPolls();
+
 	// Insert into database
 	void InsertQuestion(std::string& QuestionText,unsigned short int Type) const; // Type 1 = Open Question, 2 = Close Question.Quest order is saved in the pointer, and poll id is saved in the database variable
+	void InsertUserAnswer(Question* pQuestion,const unsigned short int PollId) const;
 	void InsertAvailableAnswer(std::string& AnswerContent) const;
-	void InsertUserAnswer(Question* pQuestion,const unsigned short int PollId);
+
+	/// Getters
+	std::vector<Poll> GetPolls() const;
+	std::vector<Question*> GetQuestions() const; // Get questions of selected poll
 };
 

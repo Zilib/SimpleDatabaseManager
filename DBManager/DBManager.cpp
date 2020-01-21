@@ -1,5 +1,6 @@
-﻿#include  "database.h"
+﻿#include "database.h"
 #include "Menu.h"
+#include <Windows.h>
 
 void ShowHeader(Poll* pPoll)
 {
@@ -10,11 +11,11 @@ void ShowHeader(Poll* pPoll)
 
 void ShowPolls(Database* PollDB)
 {
-	int ArrayIndex{ 0 };
+	int ArrayIndex{ 1 };
 	for(auto& Poll: PollDB->GetPolls())
 	{
-		if (ArrayIndex + 1 % 5 != 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << "\t"; }
-		else if (ArrayIndex + 1 % 5 == 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << std::endl; }
+		if (ArrayIndex % 5 != 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << "\t"; }
+		else if (ArrayIndex % 5 == 5) { std::cout << ArrayIndex++ << ". " << Poll.Title << std::endl; }
 	}
 }
 
@@ -30,8 +31,10 @@ void SelectPoll(Database* PollDB,Poll& Poll)
 		std::cin.clear();
 		std::cin.ignore();
 	}
+	// Save a copy of object
 	Poll = PollDB->GetPolls()[Choose];
-	PollDB->DestroyPolls(); 
+	// Release memory, remove every other polls. Not necessary to do, but i know. I will not use other polls anymore
+	PollDB->DestroyPolls();
 }
 
 void LoadAnswersToVariables(Poll* pPoll)
@@ -51,6 +54,7 @@ void SendAnswersToDatabase(Poll* pPoll,Database* DB)
 		DB->InsertUserAnswer(Question, pPoll->Id);
 	}
 }
+
 int main()
 {
 	Database* MyDB = new Database;
@@ -69,6 +73,7 @@ int main()
 			InputChoice = pMenu->ChooseChar();
 		}
 		system("cls");
+		
 		if(InputChoice == '1')
 		{	
 			ShowPolls(MyDB);

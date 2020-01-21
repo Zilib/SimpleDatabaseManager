@@ -19,7 +19,7 @@ class Question
 {
 public:
 	Question(unsigned int Id, std::string Content,QuestionType Type);
-	void ShowContent(); // cout question text
+	void ShowContent() const; // cout question text
 	virtual void AnswerForQuestion() = 0;
 	QuestionType QType;
 	unsigned int Id;

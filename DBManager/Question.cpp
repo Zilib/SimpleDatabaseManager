@@ -7,7 +7,7 @@ Question::Question(unsigned int Id, std::string Content, QuestionType Type)
 	this->QType = Type;
 }
 
-void Question::ShowContent()
+void Question::ShowContent() const
 {
 	system("cls");
 	std::cout << Content << std::endl;
