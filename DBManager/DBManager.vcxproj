@@ -161,9 +161,13 @@
   <ItemGroup>
     <ClCompile Include="database.cpp" />
     <ClCompile Include="DBManager.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Question.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="database.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="Question.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
