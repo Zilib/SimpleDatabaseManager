@@ -25,14 +25,16 @@ void SelectPoll(Database* PollDB,Poll& Poll)
 	std::cout << "Make your choice, which poll you want to answer for\n";
 
 	short int Choose;
-	while (std::cin >> Choose && (Choose > PollDB->GetPolls().size() - 1 || Choose < 0)) // TODO check does user input an character
+	std::cin >> Choose;
+	while (Choose > PollDB->GetPolls().size() || Choose <= 0) // TODO check does user input an character
 	{
 		std::cout << "Bad number\nPlease input number again!: ";
 		std::cin.clear();
 		std::cin.ignore();
+		std::cin >> Choose;
 	}
 	// Save a copy of object
-	Poll = PollDB->GetPolls()[Choose];
+	Poll = PollDB->GetPolls()[Choose-1];
 	// Release memory, remove every other polls. Not necessary to do, but i know. I will not use other polls anymore
 	PollDB->DestroyPolls();
 }
